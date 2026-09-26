@@ -269,6 +269,23 @@
   .btn-primary:hover{ filter: brightness(1.15); box-shadow: 0 0 22px var(--accent-glow); }
   .btn-ghost{ background: transparent; color: var(--text-sub); border: 1px solid rgba(var(--accent-rgb),0.35); }
   .btn-ghost:hover{ color: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px rgba(var(--accent-rgb),0.2); }
+  #voiceSelect{
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    background: transparent;
+    color: var(--text-sub);
+    border: 1px solid rgba(var(--accent-rgb),0.35);
+    border-radius: 16px;
+    padding: 10px 14px;
+    cursor: pointer;
+    max-width: 160px;
+    outline: none;
+    transition: color .15s ease, border-color .15s ease, box-shadow .2s ease;
+  }
+  #voiceSelect:hover, #voiceSelect:focus{ color: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px rgba(var(--accent-rgb),0.2); }
+  #voiceSelect option{ background: var(--panel); color: var(--text-main); }
   .sample-menu-wrap{ position: relative; display: inline-block; }
   .sample-modal-overlay{
     position: fixed;
@@ -1367,6 +1384,10 @@
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h9M9 5v3M13 8a12 12 0 0 1-6 7M6 12a13 13 0 0 0 7 4M13 20l4-9 4 9M14.5 17h5"/></svg>
       <span id="subtitlesToggleLabel">Traducir página</span>
     </button>
+    <button type="button" class="saved-toggle sub-active" id="bgFxToggleBtn" aria-pressed="true" title="Activar/desactivar efectos de fondo (mandalas y números)">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="4"/></svg>
+      <span id="bgFxToggleLabel">Efectos</span>
+    </button>
     <button type="button" class="saved-toggle" id="savedToggle">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       <span id="savedToggleLabel">Palabras</span>
@@ -1515,6 +1536,7 @@
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
           <span id="speakToggleLabel">Voz</span>
         </button>
+        <select id="voiceSelect" title="Elegir voz" aria-label="Elegir voz"></select>
         <button class="btn-ghost" id="listenBtn" title="Escuchar todo el texto (palabra + significado)">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14a9 9 0 0 1 18 0"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
           <span id="listenBtnLabel">Escuchar</span>
@@ -1627,6 +1649,7 @@
   const reviewStage = document.getElementById('reviewStage');
   const speakToggleBtn = document.getElementById('speakToggleBtn');
   const speakToggleLabel = document.getElementById('speakToggleLabel');
+  const voiceSelect = document.getElementById('voiceSelect');
   const listenBtn = document.getElementById('listenBtn');
   const listenBtnLabel = document.getElementById('listenBtnLabel');
   const exportModalOverlay = document.getElementById('exportModalOverlay');
@@ -1940,6 +1963,11 @@
 
   const langOptions = document.getElementById('langOptions');
   let selectedLang = 'en';
+  // Estado del selector de voz (declarado aquí, arriba, porque applyLang()
+  // llama a populateVoiceSelect() desde el arranque de la página y de lo
+  // contrario caería en zona muerta temporal por usar "let" más abajo).
+  let voicesList = [];
+  let voicesByLangCode = {};
 
   // ---------- Palabras guardadas para recordar/repasar ----------
   // Se persisten en localStorage, así que sobreviven a recargar la página
@@ -2141,6 +2169,7 @@
     langOptions.querySelectorAll('.lang-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.lang === code);
     });
+    populateVoiceSelect();
   }
 
   langOptions.addEventListener('click', (e) => {
@@ -3006,6 +3035,77 @@
   if(savedPanelClose) savedPanelClose.addEventListener('click', closeSavedPanel);
   if(savedOverlay) savedOverlay.addEventListener('click', closeSavedPanel);
 
+  // ---------- Selector de voz ----------
+  // Permite elegir, entre las voces que ofrece el navegador/sistema operativo,
+  // cuál usar para la pronunciación. La preferencia se guarda por idioma en
+  // localStorage para que se recuerde entre sesiones.
+  function loadSavedVoicePrefs(){
+    try{
+      const raw = localStorage.getItem('zeltha_voice_prefs');
+      voicesByLangCode = raw ? JSON.parse(raw) : {};
+    }catch(e){ voicesByLangCode = {}; }
+  }
+  function saveVoicePrefs(){
+    try{ localStorage.setItem('zeltha_voice_prefs', JSON.stringify(voicesByLangCode)); }catch(e){ /* ignore */ }
+  }
+  loadSavedVoicePrefs();
+
+  function getVoiceLangPrefix(){
+    const speechLang = (LANGS[selectedLang] && LANGS[selectedLang].speechLang) || 'en-US';
+    return speechLang.split('-')[0].toLowerCase();
+  }
+
+  function populateVoiceSelect(){
+    if(!voiceSelect) return;
+    voicesList = ('speechSynthesis' in window) ? window.speechSynthesis.getVoices() : [];
+    const prefix = getVoiceLangPrefix();
+    const matches = voicesList.filter(v => v.lang && v.lang.toLowerCase().startsWith(prefix));
+    const pool = matches.length ? matches : voicesList;
+    voiceSelect.innerHTML = '';
+    if(pool.length === 0){
+      const opt = document.createElement('option');
+      opt.textContent = '(voz del sistema)';
+      opt.value = '';
+      voiceSelect.appendChild(opt);
+      voiceSelect.disabled = true;
+      return;
+    }
+    voiceSelect.disabled = false;
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = 'Voz predeterminada';
+    voiceSelect.appendChild(defaultOpt);
+    pool.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.voiceURI;
+      opt.textContent = v.name + (v.lang ? ' (' + v.lang + ')' : '');
+      voiceSelect.appendChild(opt);
+    });
+    const saved = voicesByLangCode[selectedLang];
+    voiceSelect.value = (saved && pool.some(v => v.voiceURI === saved)) ? saved : '';
+  }
+
+  function getSelectedVoice(){
+    if(!('speechSynthesis' in window)) return null;
+    const uri = voicesByLangCode[selectedLang];
+    if(!uri) return null;
+    const list = voicesList.length ? voicesList : window.speechSynthesis.getVoices();
+    return list.find(v => v.voiceURI === uri) || null;
+  }
+
+  if(voiceSelect){
+    voiceSelect.addEventListener('change', () => {
+      if(voiceSelect.value) voicesByLangCode[selectedLang] = voiceSelect.value;
+      else delete voicesByLangCode[selectedLang];
+      saveVoicePrefs();
+    });
+  }
+
+  if('speechSynthesis' in window){
+    window.speechSynthesis.onvoiceschanged = populateVoiceSelect;
+    populateVoiceSelect(); // algunos navegadores ya tienen la lista lista de entrada
+  }
+
   function speakWord(word){
     if(!speechEnabled || !word) return;
     if(!('speechSynthesis' in window)) return;
@@ -3014,6 +3114,8 @@
       const utter = new SpeechSynthesisUtterance(word);
       utter.lang = (LANGS[selectedLang] && LANGS[selectedLang].speechLang) || 'en-US';
       utter.rate = 0.95;
+      const voice = getSelectedVoice();
+      if(voice) utter.voice = voice;
       window.speechSynthesis.speak(utter);
     }catch(e){ /* síntesis de voz no disponible en este navegador */ }
   }
@@ -3040,6 +3142,14 @@
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = lang;
         utter.rate = rate;
+        // Solo aplicamos la voz elegida si el idioma de esta frase coincide
+        // con el idioma actualmente seleccionado (evita usar, p.ej., una voz
+        // en inglés para leer el significado en español).
+        const speechLang = (LANGS[selectedLang] && LANGS[selectedLang].speechLang) || 'en-US';
+        if(lang === speechLang){
+          const voice = getSelectedVoice();
+          if(voice) utter.voice = voice;
+        }
         utter.onend = () => resolve();
         utter.onerror = () => resolve();
         window.speechSynthesis.speak(utter);
@@ -4227,8 +4337,50 @@
 (function(){
   const numField = document.getElementById('numField');
   const mandalaField = document.getElementById('mandalaField');
+  const bgFxToggleBtn = document.getElementById('bgFxToggleBtn');
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduceMotion) return;
+
+  // La línea de escaneo (.bg-fx::after) es pura animación CSS y queda
+  // siempre activa; lo que este bloque controla es si se siguen generando
+  // mandalas y números flotantes, o no.
+  let bgFxEnabled = true;
+  try{
+    const saved = localStorage.getItem('zeltha_bgfx_enabled');
+    if(saved !== null) bgFxEnabled = saved === '1';
+  }catch(e){ /* ignore */ }
+
+  function clearBgFxFields(){
+    if(mandalaField) mandalaField.innerHTML = '';
+    if(numField) numField.innerHTML = '';
+  }
+
+  function updateBgFxToggleUI(){
+    if(!bgFxToggleBtn) return;
+    bgFxToggleBtn.classList.toggle('sub-active', bgFxEnabled);
+    bgFxToggleBtn.setAttribute('aria-pressed', bgFxEnabled ? 'true' : 'false');
+    bgFxToggleBtn.title = bgFxEnabled
+      ? 'Desactivar efectos de fondo (mandalas y números)'
+      : 'Activar efectos de fondo (mandalas y números)';
+  }
+
+  if(reduceMotion){
+    // El sistema pide menos movimiento: dejamos el botón oculto y los
+    // efectos apagados, tal como se comportaba la página originalmente.
+    if(bgFxToggleBtn) bgFxToggleBtn.style.display = 'none';
+    return;
+  }
+
+  updateBgFxToggleUI();
+  if(!bgFxEnabled) clearBgFxFields();
+
+  if(bgFxToggleBtn){
+    bgFxToggleBtn.addEventListener('click', () => {
+      bgFxEnabled = !bgFxEnabled;
+      updateBgFxToggleUI();
+      try{ localStorage.setItem('zeltha_bgfx_enabled', bgFxEnabled ? '1' : '0'); }catch(e){ /* ignore */ }
+      if(!bgFxEnabled) clearBgFxFields();
+    });
+  }
 
   const vanishStyles = ['style-flash', 'style-explode', 'style-dissolve'];
   const mandalaStyles = [
@@ -4261,6 +4413,7 @@
   }
 
   function spawnNumber(){
+    if(!bgFxEnabled) return;
     if(!numField || !document.body.contains(numField)) return;
     const el = document.createElement('span');
     const style = vanishStyles[Math.floor(Math.random() * vanishStyles.length)];
@@ -4442,6 +4595,7 @@
   ];
 
   function spawnMandala(){
+    if(!bgFxEnabled) return;
     if(!mandalaField || !document.body.contains(mandalaField)) return;
     const wrap = document.createElement('div');
     const picked = mandalaStyles[Math.floor(Math.random() * mandalaStyles.length)];
