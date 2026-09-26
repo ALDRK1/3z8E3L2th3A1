@@ -269,22 +269,38 @@
   .btn-primary:hover{ filter: brightness(1.15); box-shadow: 0 0 22px var(--accent-glow); }
   .btn-ghost{ background: transparent; color: var(--text-sub); border: 1px solid rgba(var(--accent-rgb),0.35); }
   .btn-ghost:hover{ color: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px rgba(var(--accent-rgb),0.2); }
-  #voiceSelect{
-    font-family: 'Orbitron', monospace;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: .5px;
-    background: transparent;
-    color: var(--text-sub);
-    border: 1px solid rgba(var(--accent-rgb),0.35);
-    border-radius: 16px;
-    padding: 10px 14px;
-    cursor: pointer;
-    max-width: 160px;
-    outline: none;
-    transition: color .15s ease, border-color .15s ease, box-shadow .2s ease;
+  .voice-select-wrap{
+    position: relative;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--panel);
+    color: var(--accent);
+    border: 1px solid rgba(var(--accent-rgb),0.4);
+    border-radius: 14px;
+    box-shadow: 0 0 14px rgba(var(--accent-rgb),0.15);
+    transition: box-shadow .15s ease;
   }
-  #voiceSelect:hover, #voiceSelect:focus{ color: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px rgba(var(--accent-rgb),0.2); }
+  .voice-select-wrap:hover{ box-shadow: 0 0 18px var(--accent-glow); }
+  .voice-select-wrap svg{ width: 16px; height: 16px; pointer-events: none; display: block; }
+  #voiceSelect{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: transparent;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+  }
   #voiceSelect option{ background: var(--panel); color: var(--text-main); }
   .sample-menu-wrap{ position: relative; display: inline-block; }
   .sample-modal-overlay{
@@ -1355,13 +1371,23 @@
       gap: 6px;
     }
     .saved-toggle{ padding: 7px 10px; font-size: 11px; }
+    #subtitlesToggleBtn{ min-width: 0; }
     .saved-quick-actions{ flex-direction: row; flex-wrap: wrap; justify-content: flex-end; gap:6px; }
     .quick-action-btn{ padding: 6px 9px; font-size: 9.5px; }
   }
 
+  @media (max-width: 380px){
+    /* En pantallas muy angostas (típico de apps/webviews) dejamos solo el
+       ícono en los botones secundarios para que entren en una sola fila
+       sin desbordar la pantalla. El texto sigue disponible como "title"
+       (tooltip) y para lectores de pantalla vía aria-label. */
+    #subtitlesToggleLabel, #bgFxToggleLabel{ display: none; }
+    .saved-toggle{ padding: 8px; }
+  }
+
   /* Botón para mostrar/ocultar los subtítulos en español (junto a WORDS) */
   body.no-es-subs .es-sub{ display: none; }
-  .saved-top-row{ display:flex; align-items:stretch; justify-content:flex-end; gap:10px; }
+  .saved-top-row{ display:flex; align-items:stretch; justify-content:flex-end; gap:10px; flex-wrap: wrap; }
   #subtitlesToggleBtn{ min-width: 112px; justify-content: center; }
   #subtitlesToggleBtn svg{ display:block; flex-shrink:0; }
   .saved-toggle.sub-active{ background: var(--accent); color:#012028; border-color: var(--accent); box-shadow: 0 0 14px var(--accent-glow); }
@@ -1380,14 +1406,18 @@
 
 <div class="saved-controls-wrap" id="savedControlsWrap">
   <div class="saved-top-row">
-    <button type="button" class="saved-toggle sub-active" id="subtitlesToggleBtn" aria-pressed="true" title="Traducir página">
+    <button type="button" class="saved-toggle sub-active" id="subtitlesToggleBtn" aria-pressed="true" title="Traducir página" aria-label="Traducir página">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h9M9 5v3M13 8a12 12 0 0 1-6 7M6 12a13 13 0 0 0 7 4M13 20l4-9 4 9M14.5 17h5"/></svg>
       <span id="subtitlesToggleLabel">Traducir página</span>
     </button>
-    <button type="button" class="saved-toggle sub-active" id="bgFxToggleBtn" aria-pressed="true" title="Activar/desactivar efectos de fondo (mandalas y números)">
+    <button type="button" class="saved-toggle sub-active" id="bgFxToggleBtn" aria-pressed="true" title="Activar/desactivar efectos de fondo (mandalas y números)" aria-label="Activar o desactivar efectos de fondo">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="4"/></svg>
       <span id="bgFxToggleLabel">Efectos</span>
     </button>
+    <div class="voice-select-wrap" id="voiceSelectWrap" title="Elegir voz" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h2"/><path d="M7 8v8"/><path d="M11 5v14"/><path d="M15 8v8"/><path d="M19 10v4"/><path d="M22 12h-1"/></svg>
+      <select id="voiceSelect" title="Elegir voz" aria-label="Elegir voz"></select>
+    </div>
     <button type="button" class="saved-toggle" id="savedToggle">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       <span id="savedToggleLabel">Palabras</span>
@@ -1536,7 +1566,7 @@
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
           <span id="speakToggleLabel">Voz</span>
         </button>
-        <select id="voiceSelect" title="Elegir voz" aria-label="Elegir voz"></select>
+
         <button class="btn-ghost" id="listenBtn" title="Escuchar todo el texto (palabra + significado)">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14a9 9 0 0 1 18 0"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
           <span id="listenBtnLabel">Escuchar</span>
@@ -1588,6 +1618,7 @@
   const setupScreen = document.getElementById('setup-screen');
   const typeScreen = document.getElementById('type-screen');
   const resultScreen = document.getElementById('result-screen');
+  const voiceSelectWrap = document.getElementById('voiceSelectWrap');
   const sourceText = document.getElementById('sourceText');
   const startBtn = document.getElementById('startBtn');
   const sampleBtn = document.getElementById('sampleBtn');
@@ -3495,6 +3526,7 @@
     setupScreen.hidden = false;
     typeScreen.hidden = true;
     resultScreen.hidden = true;
+    if(voiceSelectWrap) voiceSelectWrap.hidden = true;
     hiddenInput.value = '';
     closeSavedPanel();
     setQuickActionsAuto(false);
@@ -3584,6 +3616,7 @@
     setupScreen.hidden = true;
     resultScreen.hidden = true;
     typeScreen.hidden = false;
+    if(voiceSelectWrap) voiceSelectWrap.hidden = false;
     setQuickActionsAuto(false);
     hiddenInput.value = '';
     hiddenInput.disabled = false;
@@ -3947,6 +3980,7 @@
     finalAccEl.textContent = acc + '%';
     typeScreen.hidden = true;
     resultScreen.hidden = false;
+    if(voiceSelectWrap) voiceSelectWrap.hidden = true;
     setQuickActionsAuto(true);
     updateReviewSavedBtn();
   }
