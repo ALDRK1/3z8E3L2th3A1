@@ -516,6 +516,7 @@
   }
   .type-topbar{
     display:flex; justify-content: space-between; align-items:center;
+    margin-top: 56px;
     margin-bottom: 18px;
     color: var(--text-sub);
     font-family: 'Share Tech Mono', monospace;
@@ -1357,23 +1358,32 @@
 
   @media (max-width: 600px){
     .words{ font-size: 20px; line-height: 1.9; max-height: 220px; }
-    .stage{ padding: 40px 16px 20px; }
-    #setup-screen{ margin-top: 2vh; }
-    .type-topbar{ margin-top: 46px; }
+    .stage{ padding: 26px 16px 20px; }
+    .brand{ margin-bottom: 14px; }
+    #setup-screen{ margin-top: calc(2vh + 26px); }
+    .type-topbar{ margin-top: 72px; }
     .saved-controls-wrap{
       top: 54px;
       left: 10px;
       right: 10px;
-      flex-direction: row;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      align-items: center;
+      flex-direction: column;
+      align-items: flex-end;
       gap: 6px;
     }
     .saved-toggle{ padding: 7px 10px; font-size: 11px; }
     #subtitlesToggleBtn{ min-width: 0; }
     .saved-quick-actions{ flex-direction: row; flex-wrap: wrap; justify-content: flex-end; gap:6px; }
     .quick-action-btn{ padding: 6px 9px; font-size: 9.5px; }
+    body:not(.no-es-subs) .quick-action-btn.has-es-sub{ min-width: 0; }
+
+    /* En celulares, mientras se está en la sesión de escritura (o en la
+       pantalla de resultado), dejamos solo el ícono en "Traducir página"
+       para que el botón no ocupe tanto ancho. En la pantalla de entrada
+       (setup) se mantiene el texto + ícono normal. El texto sigue
+       disponible como "title" (tooltip) y para lectores de pantalla vía
+       aria-label. */
+    body.in-session #subtitlesToggleLabel{ display: none; }
+    body.in-session #subtitlesToggleBtn{ padding: 9px; }
   }
 
   @media (max-width: 380px){
@@ -1381,8 +1391,12 @@
        ícono en los botones secundarios para que entren en una sola fila
        sin desbordar la pantalla. El texto sigue disponible como "title"
        (tooltip) y para lectores de pantalla vía aria-label. */
-    #subtitlesToggleLabel, #bgFxToggleLabel{ display: none; }
+    #bgFxToggleLabel{ display: none; }
     .saved-toggle{ padding: 8px; }
+    #exportWordsBtnLabel{ display: none; }
+    .quick-action-btn{ padding: 8px; min-width: 0 !important; }
+    #exportWordsBtn{ padding: 8px; }
+    .quick-action-btn .es-sub{ display: none; }
   }
 
   /* Botón para mostrar/ocultar los subtítulos en español (junto a WORDS) */
@@ -1390,6 +1404,7 @@
   .saved-top-row{ display:flex; align-items:stretch; justify-content:flex-end; gap:10px; flex-wrap: wrap; }
   #subtitlesToggleBtn{ min-width: 112px; justify-content: center; }
   #subtitlesToggleBtn svg{ display:block; flex-shrink:0; }
+  #subtitlesToggleLabel{ font-size: 10.5px; letter-spacing: 0.6px; }
   .saved-toggle.sub-active{ background: var(--accent); color:#012028; border-color: var(--accent); box-shadow: 0 0 14px var(--accent-glow); }
   .export-format-row{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
   @media (max-width: 640px){
@@ -1616,6 +1631,7 @@
 <script>
 (function(){
   const setupScreen = document.getElementById('setup-screen');
+  const savedControlsWrap = document.getElementById('savedControlsWrap');
   const typeScreen = document.getElementById('type-screen');
   const resultScreen = document.getElementById('result-screen');
   const voiceSelectWrap = document.getElementById('voiceSelectWrap');
@@ -2109,6 +2125,7 @@
       b.classList.toggle('sub-active', esSubsEnabled);
       b.setAttribute('aria-pressed', esSubsEnabled ? 'true' : 'false');
     }
+    if(typeof adjustSetupScreenOffset === 'function') adjustSetupScreenOffset();
   }
   applyEsSubsState();
 
@@ -2201,7 +2218,31 @@
       btn.classList.toggle('active', btn.dataset.lang === code);
     });
     populateVoiceSelect();
+    adjustSetupScreenOffset();
   }
+
+  // En la pantalla de entrada, la barra de botones de arriba (traducir
+  // página, efectos, palabras) está en position:fixed y puede ocupar más
+  // o menos alto según el idioma de la interfaz o si se envuelve en más
+  // de una fila. Este ajuste mide su altura real y empuja el contenido
+  // de #setup-screen lo necesario para que nunca quede tapado.
+  function adjustSetupScreenOffset(){
+    if(!setupScreen || !savedControlsWrap) return;
+    if(window.innerWidth > 600){
+      setupScreen.style.marginTop = '';
+      return;
+    }
+    const wrapRect = savedControlsWrap.getBoundingClientRect();
+    const gap = 18;
+    const needed = wrapRect.bottom + gap;
+    const currentRect = setupScreen.getBoundingClientRect();
+    const currentMarginTop = parseFloat(getComputedStyle(setupScreen).marginTop) || 0;
+    const topWithoutMargin = currentRect.top - currentMarginTop;
+    const desiredMarginTop = Math.max(0, needed - topWithoutMargin);
+    setupScreen.style.marginTop = desiredMarginTop + 'px';
+  }
+  window.addEventListener('resize', adjustSetupScreenOffset);
+  window.addEventListener('load', adjustSetupScreenOffset);
 
   langOptions.addEventListener('click', (e) => {
     const btn = e.target.closest('.lang-btn');
@@ -3526,6 +3567,8 @@
     setupScreen.hidden = false;
     typeScreen.hidden = true;
     resultScreen.hidden = true;
+    document.body.classList.remove('in-session');
+    syncSubtitlesBtnCompact();
     if(voiceSelectWrap) voiceSelectWrap.hidden = true;
     hiddenInput.value = '';
     closeSavedPanel();
@@ -3601,6 +3644,24 @@
     startTypingSession(wordList, breaks);
   }
 
+  function syncSubtitlesBtnCompact(){
+    if(!subtitlesToggleBtn) return;
+    const compact = document.body.classList.contains('in-session') && window.innerWidth <= 600;
+    if(subtitlesToggleLabel) subtitlesToggleLabel.style.display = compact ? 'none' : '';
+    const esSub = subtitlesToggleBtn.querySelector('.es-sub');
+    if(esSub) esSub.style.display = compact ? 'none' : '';
+    if(compact){
+      subtitlesToggleBtn.style.padding = '9px';
+      subtitlesToggleBtn.style.minWidth = '0';
+      subtitlesToggleBtn.style.width = 'auto';
+    } else {
+      subtitlesToggleBtn.style.padding = '';
+      subtitlesToggleBtn.style.minWidth = '';
+      subtitlesToggleBtn.style.width = '';
+    }
+  }
+  window.addEventListener('resize', syncSubtitlesBtnCompact);
+
   function startTypingSession(wordList, breaks){
     words = wordList;
     lineBreakBefore = breaks || new Set();
@@ -3616,6 +3677,8 @@
     setupScreen.hidden = true;
     resultScreen.hidden = true;
     typeScreen.hidden = false;
+    document.body.classList.add('in-session');
+    syncSubtitlesBtnCompact();
     if(voiceSelectWrap) voiceSelectWrap.hidden = false;
     setQuickActionsAuto(false);
     hiddenInput.value = '';
@@ -4159,6 +4222,14 @@
     // el CSS de .touch-nosel): así el sistema nunca muestra su propia barra
     // de "Traducir / Copiar / Compartir" tapando nuestra UI.
     wordsContainer.classList.add('touch-nosel');
+    // Estos dos elementos quedan fijos y centrados en pantalla (ver CSS
+    // .touch-mode), así que no necesitan vivir dentro de .stage/.app. Los
+    // sacamos al <body> para que escapen del stacking context de .app
+    // (position:relative + z-index:1) y su z-index:9999 gane de verdad
+    // contra la barra de botones fija de arriba (#savedControlsWrap,
+    // z-index:20), en vez de quedar atrapados "detrás" de todo .app.
+    document.body.appendChild(selTranslateBtn);
+    document.body.appendChild(selTranslateBubble);
   }
 
   function updateSelectionTranslateUI(){
