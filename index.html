@@ -1200,19 +1200,6 @@
     70%{ opacity:1; transform: scale(1.18); }
     100%{ opacity:1; transform: scale(1); }
   }
-  .anim-zoom-fade-in{ animation: rv-zoom-fade-in .6s ease-out forwards; }
-  @keyframes rv-zoom-fade-in{
-    0%{ opacity:0; transform: scale(2.2); filter: blur(4px); }
-    100%{ opacity:1; transform: scale(1); filter: blur(0); }
-  }
-  .anim-elastic-in{ animation: rv-elastic-in .9s cubic-bezier(.68,-0.55,.27,1.55) forwards; }
-  @keyframes rv-elastic-in{
-    0%{ opacity:0; transform: scale(0.3) rotate(-8deg); }
-    40%{ opacity:1; transform: scale(1.25) rotate(4deg); }
-    65%{ transform: scale(0.9) rotate(-2deg); }
-    85%{ transform: scale(1.06) rotate(1deg); }
-    100%{ opacity:1; transform: scale(1) rotate(0deg); }
-  }
   .anim-flip3d-in{ animation: rv-flip3d-in .7s ease-out forwards; }
   @keyframes rv-flip3d-in{
     0%{ opacity:0; transform: rotateY(90deg) scale(0.7); }
@@ -1222,9 +1209,9 @@
   @keyframes rv-slam-in{
     0%{ opacity:0; transform: translateY(-140px) scale(1.4); }
     70%{ opacity:1; transform: translateY(0) scale(1); }
-    80%{ transform: translateX(-4px); }
-    90%{ transform: translateX(3px); }
-    100%{ transform: translateX(0); }
+    80%{ opacity:1; transform: translateX(-4px); }
+    90%{ opacity:1; transform: translateX(3px); }
+    100%{ opacity:1; transform: translateX(0); }
   }
   .anim-typewriter-pulse{ animation: rv-typewriter-pulse .35s ease-out forwards; }
   @keyframes rv-typewriter-pulse{
@@ -1234,27 +1221,17 @@
   }
 
   /* ---------- Animaciones de salida ---------- */
-  .anim-scale-out{ animation: rv-scale-out .45s ease-in forwards; }
-  @keyframes rv-scale-out{
-    0%{ opacity:1; transform: scale(1); }
-    100%{ opacity:0; transform: scale(0.1); }
-  }
-  .anim-burst-out{ animation: rv-burst-out .55s ease-in forwards; }
-  @keyframes rv-burst-out{
-    0%{ opacity:1; transform: scale(1); filter: blur(0); }
-    100%{ opacity:0; transform: scale(2.4); filter: blur(3px); }
-  }
-  .anim-particle-dissolve-out{ animation: rv-particle-dissolve-out .65s ease-out forwards; }
+  .anim-particle-dissolve-out{ animation: rv-particle-dissolve-out .9s ease-in-out forwards; }
   @keyframes rv-particle-dissolve-out{
     0%{ opacity:1; transform: scale(1); filter: blur(0); letter-spacing: normal; }
     100%{ opacity:0; transform: scale(0.85); filter: blur(6px); letter-spacing: 6px; }
   }
-  .anim-smoke-out{ animation: rv-smoke-out .65s ease-out forwards; }
+  .anim-smoke-out{ animation: rv-smoke-out .9s ease-in-out forwards; }
   @keyframes rv-smoke-out{
     0%{ opacity:1; transform: translateY(0) scale(1); filter: blur(0); }
     100%{ opacity:0; transform: translateY(-38px) scale(1.25); filter: blur(7px); }
   }
-  .anim-flip3d-out{ animation: rv-flip3d-out .55s ease-in forwards; }
+  .anim-flip3d-out{ animation: rv-flip3d-out .75s ease-in-out forwards; }
   @keyframes rv-flip3d-out{
     0%{ opacity:1; transform: rotateY(0deg) scale(1); }
     100%{ opacity:0; transform: rotateY(-100deg) scale(0.6); }
@@ -1332,6 +1309,92 @@
     25%{ opacity:1; transform: scale(1.15); }
     80%{ opacity:1; transform: scale(1); }
     100%{ opacity:0; transform: scale(1); }
+  }
+
+
+  /* ---------- Controles del repaso (silenciar / saltar) + repetir voz + felicitación ---------- */
+  .review-controls{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    padding: 0 16px 14px; flex-wrap:wrap;
+  }
+  .review-controls[hidden]{ display:none; }
+  .review-ctrl-btn{
+    background: transparent;
+    border: 1px solid rgba(var(--accent-rgb),0.35);
+    color: var(--text-sub);
+    border-radius: 999px;
+    font-family:'Share Tech Mono', monospace;
+    font-size: 12px;
+    padding: 7px 14px;
+    cursor:pointer;
+    display:inline-flex; align-items:center; gap:7px;
+    transition: color .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .review-ctrl-btn:hover{ color: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+  .review-ctrl-btn svg{ display:block; flex-shrink:0; }
+  .review-ctrl-btn.is-muted{ color: var(--error); border-color: rgba(255,77,94,0.5); }
+  .review-speed{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'Share Tech Mono', monospace; font-size:12px; color: var(--text-sub);
+    border: 1px solid rgba(var(--accent-rgb),0.35); border-radius: 999px; padding: 5px 12px;
+  }
+  .review-speed[hidden]{ display:none; }
+  .review-speed input[type=range]{ width: 96px; accent-color: var(--accent); cursor:pointer; margin:0; }
+  .review-speed-val{ min-width: 34px; text-align:right; color: var(--accent); }
+  .review-quiz-word-row{ display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; }
+  .review-replay-btn{
+    width: 42px; height: 42px; border-radius: 50%;
+    padding: 0; letter-spacing: 0; flex-shrink: 0;
+    display:inline-flex; align-items:center; justify-content:center;
+    background: transparent;
+    border: 1px solid rgba(var(--accent-rgb),0.45);
+    color: var(--accent);
+    cursor:pointer;
+    transition: box-shadow .15s ease, transform .1s ease;
+  }
+  .review-replay-btn:hover{ box-shadow: 0 0 14px var(--accent-glow); }
+  .review-replay-btn:active{ transform: scale(0.94); }
+  .review-replay-btn svg{ display:block; width: 20px; height: 20px; flex-shrink: 0; }
+  .review-congrats{
+    font-family:'Orbitron', monospace; font-weight:800;
+    font-size: clamp(22px, 5.6vw, 36px);
+    color:#3cdc6e;
+    text-shadow: 0 0 20px rgba(60,220,110,0.7);
+    animation: review-congrats-pop .8s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  .review-congrats-sub{
+    font-family:'Share Tech Mono', monospace;
+    color: var(--text-main); font-size: 14px; letter-spacing: .5px;
+    margin-top: -10px;
+  }
+  @keyframes review-congrats-pop{
+    0%{ opacity:0; transform: scale(0.4); }
+    100%{ opacity:1; transform: scale(1); }
+  }
+  .review-confetti{ position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:1; }
+  .confetti-piece{
+    position:absolute; top:-12px;
+    width: 8px; height: 14px;
+    opacity: 0;
+    animation: confetti-fall var(--cdur, 3s) linear var(--cdelay, 0s) forwards;
+  }
+  @keyframes confetti-fall{
+    0%{ opacity:1; transform: translate3d(0,0,0) rotate(0deg); }
+    100%{ opacity:1; transform: translate3d(var(--cdrift, 0px), 560px, 0) rotate(var(--crot, 540deg)); }
+  }
+  @media (max-width: 600px){
+    .review-controls{ flex-wrap: nowrap; gap: 8px; padding: 0 12px 12px; }
+    .review-ctrl-btn{ padding: 0; width: 40px; height: 40px; justify-content:center; flex-shrink:0; }
+    .review-ctrl-btn span{ display:none; }
+    .review-ctrl-btn svg{ width: 18px; height: 18px; }
+    .review-speed{ padding: 5px 10px; gap: 6px; min-width: 0; }
+    .review-speed > span:first-child{ display:none; }
+    .review-speed input[type=range]{ width: 80px; }
+    .review-speed-val{ min-width: 30px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .review-confetti{ display:none; }
+    .review-congrats{ animation: none; }
   }
 
   .review-results-score{
@@ -1851,6 +1914,13 @@
       reviewResultsSub: 'correct answers',
       reviewRetryBtn: 'Try again',
       reviewCloseBtnLabel: 'Close',
+      reviewSkipBtn: 'Skip to questions',
+      reviewSpeedLabel: 'Speed',
+      reviewMuteTitle: 'Mute voice',
+      reviewUnmuteTitle: 'Unmute voice',
+      reviewReplayTitle: 'Repeat pronunciation',
+      reviewCongratsTitle: 'Congratulations!',
+      reviewCongratsSub: 'You remembered every word',
       exportByDatesTitle: 'Export by date',
       exportDatesLabel: 'Choose the dates to export',
       exportSelectAll: 'Select all',
@@ -1919,6 +1989,13 @@
       reviewResultsSub: 'respostas corretas',
       reviewRetryBtn: 'Tentar de novo',
       reviewCloseBtnLabel: 'Fechar',
+      reviewSkipBtn: 'Ir para as perguntas',
+      reviewSpeedLabel: 'Velocidade',
+      reviewMuteTitle: 'Silenciar voz',
+      reviewUnmuteTitle: 'Ativar voz',
+      reviewReplayTitle: 'Repetir pronúncia',
+      reviewCongratsTitle: 'Parabéns!',
+      reviewCongratsSub: 'Você lembrou de todas as palavras',
       exportByDatesTitle: 'Exportar por data',
       exportDatesLabel: 'Escolha as datas para exportar',
       exportSelectAll: 'Selecionar tudo',
@@ -1987,6 +2064,13 @@
       reviewResultsSub: '答对题数',
       reviewRetryBtn: '再试一次',
       reviewCloseBtnLabel: '关闭',
+      reviewSkipBtn: '跳到题目',
+      reviewSpeedLabel: '速度',
+      reviewMuteTitle: '静音',
+      reviewUnmuteTitle: '开启语音',
+      reviewReplayTitle: '重复发音',
+      reviewCongratsTitle: '恭喜你！',
+      reviewCongratsSub: '你记住了所有单词',
       exportByDatesTitle: '按日期导出',
       exportDatesLabel: '选择要导出的日期',
       exportSelectAll: '全选',
@@ -2639,6 +2723,120 @@
   let reviewScore = 0;
   let reviewAdvanceTimer = null;
 
+  // ---------- Voz y controles del repaso interactivo ----------
+  const REVIEW_TRANSLATION_SPEECH_LANG = 'es-ES';
+  let reviewMuted = false;
+  try{ reviewMuted = localStorage.getItem('zeltha_review_muted') === '1'; }catch(e){ /* ignore */ }
+  let reviewSpeed = 1; // multiplicador de velocidad (voz + tiempos de espera)
+  try{
+    const sv = parseFloat(localStorage.getItem('zeltha_review_speed'));
+    if(sv >= 0.5 && sv <= 2) reviewSpeed = sv;
+  }catch(e){ /* ignore */ }
+  let reviewGen = 0; // se incrementa al saltar/cerrar/cambiar de paso: invalida callbacks viejos
+
+  const SVG_SPEAKER = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>';
+  const SVG_SPEAKER_OFF = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>';
+  const SVG_PLAY = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="8 4 20 12 8 20 8 4"></polygon></svg>';
+  const SVG_SKIP = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>';
+
+  const reviewBoxEl = document.getElementById('reviewBox');
+  const reviewControls = document.createElement('div');
+  reviewControls.className = 'review-controls';
+  reviewControls.hidden = true;
+  const reviewMuteBtn = document.createElement('button');
+  reviewMuteBtn.type = 'button';
+  reviewMuteBtn.className = 'review-ctrl-btn';
+  const reviewSkipBtn = document.createElement('button');
+  reviewSkipBtn.type = 'button';
+  reviewSkipBtn.className = 'review-ctrl-btn';
+  const reviewSpeedWrap = document.createElement('label');
+  reviewSpeedWrap.className = 'review-speed';
+  const reviewSpeedText = document.createElement('span');
+  const reviewSpeedInput = document.createElement('input');
+  reviewSpeedInput.type = 'range';
+  reviewSpeedInput.min = '0.5'; reviewSpeedInput.max = '2'; reviewSpeedInput.step = '0.25';
+  reviewSpeedInput.value = String(reviewSpeed);
+  const reviewSpeedVal = document.createElement('span');
+  reviewSpeedVal.className = 'review-speed-val';
+  function formatSpeed(v){ return (Math.round(v * 100) / 100) + '×'; }
+  reviewSpeedVal.textContent = formatSpeed(reviewSpeed);
+  reviewSpeedInput.addEventListener('input', () => {
+    reviewSpeed = parseFloat(reviewSpeedInput.value) || 1;
+    reviewSpeedVal.textContent = formatSpeed(reviewSpeed);
+    try{ localStorage.setItem('zeltha_review_speed', String(reviewSpeed)); }catch(e){ /* ignore */ }
+  });
+  reviewSpeedWrap.appendChild(reviewSpeedText);
+  reviewSpeedWrap.appendChild(reviewSpeedInput);
+  reviewSpeedWrap.appendChild(reviewSpeedVal);
+  reviewControls.appendChild(reviewSpeedWrap);
+  reviewControls.appendChild(reviewMuteBtn);
+  reviewControls.appendChild(reviewSkipBtn);
+  if(reviewBoxEl) reviewBoxEl.appendChild(reviewControls);
+
+  function refreshReviewMuteBtn(){
+    const t = LANGS[selectedLang] || {};
+    const label = reviewMuted ? t.reviewUnmuteTitle : t.reviewMuteTitle;
+    reviewMuteBtn.innerHTML = (reviewMuted ? SVG_SPEAKER_OFF : SVG_SPEAKER) + '<span>' + (label || '') + '</span>';
+    reviewMuteBtn.classList.toggle('is-muted', reviewMuted);
+    reviewMuteBtn.title = label || '';
+    reviewMuteBtn.setAttribute('aria-label', label || '');
+    reviewMuteBtn.setAttribute('aria-pressed', reviewMuted ? 'true' : 'false');
+  }
+  // mute: mostrar/ocultar botón de silenciar. skip: mostrar/ocultar "saltar a preguntas".
+  function setReviewControls(showMute, showSkip, showSpeed){
+    const t = LANGS[selectedLang] || {};
+    reviewMuteBtn.hidden = !showMute;
+    reviewSkipBtn.hidden = !showSkip;
+    reviewSpeedWrap.hidden = !showSpeed;
+    reviewSpeedText.textContent = t.reviewSpeedLabel || '';
+    reviewSpeedWrap.title = t.reviewSpeedLabel || '';
+    reviewSkipBtn.innerHTML = SVG_SKIP + '<span>' + (t.reviewSkipBtn || '') + '</span>';
+    reviewSkipBtn.title = t.reviewSkipBtn || '';
+    reviewSkipBtn.setAttribute('aria-label', t.reviewSkipBtn || '');
+    refreshReviewMuteBtn();
+    reviewControls.hidden = !(showMute || showSkip || showSpeed);
+  }
+  function hideReviewControls(){ reviewControls.hidden = true; }
+
+  reviewMuteBtn.addEventListener('click', () => {
+    reviewMuted = !reviewMuted;
+    try{ localStorage.setItem('zeltha_review_muted', reviewMuted ? '1' : '0'); }catch(e){ /* ignore */ }
+    if(reviewMuted) cancelSpeech();
+    refreshReviewMuteBtn();
+  });
+  reviewSkipBtn.addEventListener('click', () => {
+    reviewGen++;
+    if(reviewAdvanceTimer){ clearTimeout(reviewAdvanceTimer); reviewAdvanceTimer = null; }
+    cancelSpeech();
+    reviewPos = 0;
+    reviewScore = 0;
+    reviewMissed = [];
+    runReviewQuizStep();
+  });
+
+  function getReviewWordLang(){
+    return (LANGS[selectedLang] && LANGS[selectedLang].speechLang) || 'en-US';
+  }
+
+  // Habla un texto y devuelve una promesa que se resuelve cuando termina
+  // (o de inmediato si está silenciado / no hay síntesis de voz).
+  // force=true ignora el silencio (botón de repetir pronunciación).
+  function reviewSpeak(text, lang, force){
+    return new Promise((resolve) => {
+      if((reviewMuted && !force) || !text || !('speechSynthesis' in window)){ resolve(); return; }
+      const myGen = reviewGen;
+      let done = false;
+      let guard = null;
+      const finish = () => { if(done) return; done = true; if(guard) clearTimeout(guard); resolve(); };
+      guard = setTimeout(finish, 9000); // por si el navegador nunca dispara onend
+      // pequeña pausa: algunos navegadores ignoran speak() justo después de cancel()
+      setTimeout(() => {
+        if(myGen !== reviewGen){ finish(); return; }
+        speakUtterance(text, lang, Math.max(0.5, Math.min(2, 0.95 * reviewSpeed))).then(finish);
+      }, 110);
+    });
+  }
+
   function setReviewProgress(text){
     if(reviewProgress) reviewProgress.textContent = text;
   }
@@ -2649,6 +2847,9 @@
   function closeReviewOverlay(){
     if(reviewOverlay) reviewOverlay.classList.remove('open');
     if(reviewAdvanceTimer){ clearTimeout(reviewAdvanceTimer); reviewAdvanceTimer = null; }
+    reviewGen++;
+    cancelSpeech();
+    hideReviewControls();
   }
 
   // Elegir qué fechas repasar: si solo hay un día guardado, empieza directo;
@@ -2743,6 +2944,9 @@
   }
 
   function showReviewStartScreen(){
+    reviewGen++;
+    cancelSpeech();
+    hideReviewControls();
     const t = LANGS[selectedLang];
     setReviewProgress('');
     reviewStage.innerHTML = '';
@@ -2766,19 +2970,15 @@
   const ENTRANCE_ANIMS = [
     { name: 'scale-in', duration: 620 },
     { name: 'pop-in', duration: 600 },
-    { name: 'zoom-fade-in', duration: 620 },
-    { name: 'elastic-in', duration: 950 },
     { name: 'flip3d-in', duration: 720 },
     { name: 'slam-in', duration: 600 },
     { name: 'split-in', duration: 850 },
     { name: 'typewriter-in', duration: 950 }
   ];
   const EXIT_ANIMS = [
-    { name: 'scale-out', duration: 460 },
-    { name: 'burst-out', duration: 560 },
-    { name: 'particle-dissolve-out', duration: 660 },
-    { name: 'smoke-out', duration: 660 },
-    { name: 'flip3d-out', duration: 560 },
+    { name: 'particle-dissolve-out', duration: 900 },
+    { name: 'smoke-out', duration: 900 },
+    { name: 'flip3d-out', duration: 750 },
     { name: 'shatter-out', duration: 620 },
     { name: 'glitch-destroy-out', duration: 880 }
   ];
@@ -2825,7 +3025,7 @@
   // las traducciones más largas queden visibles el tiempo suficiente.
   function computeReadHoldMs(text){
     const len = (text || '').length;
-    return Math.max(1100, Math.min(2800, 700 + len * 55));
+    return Math.max(2400, Math.min(4500, 1500 + len * 80));
   }
 
   function pickRandom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
@@ -2906,6 +3106,7 @@
         });
       };
       if(anim.name === 'glitch-destroy-out'){
+        el.style.opacity = '1'; // evita que la palabra desaparezca de golpe al quitar la animación de entrada
         clearAnimClasses(el);
         el.classList.add('anim-glitch-pre');
         reviewAdvanceTimer = setTimeout(() => { el.classList.remove('anim-glitch-pre'); runShatter(); }, GLITCH_PRE_DELAY);
@@ -2925,6 +3126,14 @@
       runReviewQuizStep();
       return;
     }
+    const gen = ++reviewGen;
+    const live = () => gen === reviewGen;
+    const later = (ms, fn) => {
+      reviewAdvanceTimer = setTimeout(() => { if(live()) fn(); }, ms);
+    };
+    cancelSpeech();
+    setReviewControls(true, true, true);
+
     const t = LANGS[selectedLang];
     const item = reviewQueue[reviewPos];
     setReviewProgress(`${t.reviewAnimLabel} ${reviewPos + 1}/${reviewQueue.length}`);
@@ -2957,23 +3166,34 @@
     const trEntrance = pickRandom(ENTRANCE_ANIMS);
     const trExit = pickRandom(EXIT_ANIMS);
 
-    const readHoldMs = computeReadHoldMs(item.translation || item.word);
+    // (la velocidad se lee en el momento de programar cada espera, así el slider
+    // también funciona a mitad del repaso)
+    const readHoldMs = () => computeReadHoldMs(item.translation || item.word) / reviewSpeed;
 
-    playEntrance(wordEl, wordEntrance, () => {
-      reviewAdvanceTimer = setTimeout(() => {
+    // 1) Entra la palabra y se pronuncia; se espera a que termine la animación Y la voz.
+    const wordSpeech = reviewSpeak(item.word, getReviewWordLang());
+    const wordIn = new Promise(res => playEntrance(wordEl, wordEntrance, res));
+    Promise.all([wordIn, wordSpeech]).then(() => {
+      if(!live()) return;
+      later(480 / reviewSpeed, () => {
+        // 2) Entra la traducción y se pronuncia en español.
         trEl.style.setProperty('--tcolor', randomReviewColor());
-        playEntrance(trEl, trEntrance, () => {
-          reviewAdvanceTimer = setTimeout(() => {
+        const trSpeech = reviewSpeak(item.translation, REVIEW_TRANSLATION_SPEECH_LANG);
+        const trIn = new Promise(res => playEntrance(trEl, trEntrance, res));
+        Promise.all([trIn, trSpeech]).then(() => {
+          if(!live()) return;
+          // 3) Ambas quedan visibles juntas un rato y luego salen a la vez.
+          later(readHoldMs(), () => {
             playExit(wordEl, wordExit, () => {});
             playExit(trEl, trExit, () => {
-              reviewAdvanceTimer = setTimeout(() => {
+              later(140 / reviewSpeed, () => {
                 reviewPos++;
                 runReviewAnimStep();
-              }, 140);
+              });
             });
-          }, readHoldMs);
+          });
         });
-      }, 480);
+      });
     });
   }
 
@@ -2995,16 +3215,33 @@
       runReviewResults();
       return;
     }
+    const gen = ++reviewGen;
+    cancelSpeech();
+    setReviewControls(true, false, false);
     const t = LANGS[selectedLang];
     const item = reviewQueue[reviewPos];
     const correct = item.translation || FILLER_TRANSLATIONS[0];
     setReviewProgress(`${t.reviewQuizLabel} ${reviewPos + 1}/${reviewQueue.length}`);
     reviewStage.innerHTML = '';
 
+    const wordRow = document.createElement('div');
+    wordRow.className = 'review-quiz-word-row';
     const wordEl = document.createElement('div');
     wordEl.className = 'review-quiz-word';
     wordEl.textContent = item.word;
-    reviewStage.appendChild(wordEl);
+    wordRow.appendChild(wordEl);
+    const replayBtn = document.createElement('button');
+    replayBtn.type = 'button';
+    replayBtn.className = 'review-replay-btn';
+    replayBtn.innerHTML = SVG_PLAY;
+    replayBtn.title = t.reviewReplayTitle || '';
+    replayBtn.setAttribute('aria-label', t.reviewReplayTitle || '');
+    replayBtn.addEventListener('click', () => {
+      cancelSpeech();
+      reviewSpeak(item.word, getReviewWordLang(), true);
+    });
+    wordRow.appendChild(replayBtn);
+    reviewStage.appendChild(wordRow);
 
     const optionsWrap = document.createElement('div');
     optionsWrap.className = 'review-options';
@@ -3022,6 +3259,9 @@
     feedback.className = 'review-feedback';
     feedback.id = 'reviewFeedback';
     reviewStage.appendChild(feedback);
+
+    // Al mostrar la pregunta, se lee sola la palabra en el idioma estudiado.
+    if(gen === reviewGen) reviewSpeak(item.word, getReviewWordLang());
   }
 
   function handleReviewAnswer(btn, chosen, correct, optionsWrap){
@@ -3052,8 +3292,38 @@
 
   function runReviewResults(){
     const t = LANGS[selectedLang];
+    reviewGen++;
+    cancelSpeech();
+    hideReviewControls();
     setReviewProgress(t.reviewResultsLabel);
     reviewStage.innerHTML = '';
+    // Felicitación solo si se recordó todo (ninguna respuesta fallada).
+    const perfect = reviewQueue.length > 0 && reviewScore === reviewQueue.length && reviewMissed.length === 0;
+    if(perfect){
+      const confetti = document.createElement('div');
+      confetti.className = 'review-confetti';
+      const colors = ['#3cdc6e', '#ffd23c', '#ff4d5e', '#4db8ff', '#c77dff', '#ffffff'];
+      for(let i = 0; i < 44; i++){
+        const piece = document.createElement('span');
+        piece.className = 'confetti-piece';
+        piece.style.left = (Math.random() * 100).toFixed(1) + '%';
+        piece.style.background = colors[i % colors.length];
+        piece.style.setProperty('--cdelay', (Math.random() * 1.2).toFixed(2) + 's');
+        piece.style.setProperty('--cdur', (2.4 + Math.random() * 1.8).toFixed(2) + 's');
+        piece.style.setProperty('--cdrift', ((Math.random() * 2 - 1) * 90).toFixed(0) + 'px');
+        piece.style.setProperty('--crot', (360 + Math.random() * 540).toFixed(0) + 'deg');
+        confetti.appendChild(piece);
+      }
+      reviewStage.appendChild(confetti);
+      const congrats = document.createElement('div');
+      congrats.className = 'review-congrats';
+      congrats.textContent = '🎉 ' + (t.reviewCongratsTitle || '') + ' 🎉';
+      reviewStage.appendChild(congrats);
+      const congratsSub = document.createElement('div');
+      congratsSub.className = 'review-congrats-sub';
+      congratsSub.textContent = t.reviewCongratsSub || '';
+      reviewStage.appendChild(congratsSub);
+    }
     const scoreEl = document.createElement('div');
     scoreEl.className = 'review-results-score';
     scoreEl.textContent = `${reviewScore}/${reviewQueue.length}`;
